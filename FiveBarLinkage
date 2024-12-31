@@ -1,0 +1,34 @@
+#include <Stepper.h>
+#include "ScaraStepper.h"
+
+#define maxspeed 0.1
+
+ScaraStepper LeftMotor(3,5,4,6,A0);
+ScaraStepper RightMotor(7,9,8,10,A1);
+
+int Val_Right, Val_Left;
+
+void setup() {
+  Serial.begin(19200);
+  LeftMotor.setGoal(512);
+  RightMotor.setGoal(512);
+}
+
+void loop() {
+  Val_Right = analogRead(A3);
+  Val_Left = analogRead(A4);
+
+  LeftMotor.setGoal(Val_Left);
+  RightMotor.setGoal(Val_Right);
+
+  LeftMotor.Move(maxspeed);
+  RightMotor.Move(maxspeed);
+  Serial.print(LeftMotor.printAngle());
+  Serial.print(",");
+  Serial.print(LeftMotor.printGoal());
+  Serial.print(",");
+  Serial.print(RightMotor.printAngle());
+  Serial.print(",");
+  Serial.println(RightMotor.printGoal());
+
+}
