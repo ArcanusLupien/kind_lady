@@ -1,2 +1,17 @@
 # kind_lady
-Controller for H-gantry style 3D sketching/cutting machine
+This is a project for me to experiment with me finding a way to control a parallel SCARA robot.
+The first problem is to find a way to accurately determine a home location since misalignment on this type of robot is not just a cartesian offset but a polar offset that will throw off the accuracy and precision of this robot.
+
+My current design is based on having a linear hall effect sensor (HES) connected to a comparator and detecting when the voltage increases over the threshold using a trigger.
+A switch HES would work better, however i only have linear or latch HES's from a BLDC project i was working on.
+By knowing what step the HES went over the threshold, and where it went back down, i should have a symetrical measurement of step locations.
+I have placed the HES at 270 degrees of rotation so that it will line up with one of the exact full steps of the motor. The motor has 200 steps, and since this is divisible by 4, that means it is rotationally symmetric and it doesn't matter the orientation that i mount the motor. I would also like to start with full steps to determine a small handful of steps where the HES sensor is, and then step it up to micro-stepping to increase the precision. With this, I think i will use the internal comparator of my uC to raise the threshold as i sweep so that the micro-stepping also gives a smaller sweep than the initial full-step sweep.
+
+The homing start would include stepping until the HES is triggered, then slowing down until the HES is un-tripped. Since the HES is not at one of the limits, there has to be an assumption made by the uC as to which direction to travel. To limit the amount of possible damage that could be caused by overstepping and missing steps, I am considering using a blind sweep. Consider the left motor for this procedure. First, it will step 50 steps clockwise. This will ensure that if the stepper is in the range of 270+ degrees, it will pass the HES and begin the targeted homing manuever. If the Stepper is at 90 degrees or less, this will result in missed stepps but will limit the maximum overstepper to only 50 steps. After completing these 50 steps and not triggering the HES, it will know that it is definitely in the <270 degree range and can begin stepping counter-clockwise until the HES is sensed. If it completes more than 150 steps without a HES trigger, it will shut down due to being unable to detect it's position.
+
+This system works better than starting at 150 steps counter-clockwise, even though the robot's operating area is only in the < 270 degree region. If anything occurs to bump the arm behind (> 270 degrees) the HES, this could result in up to 150 full steps being rammed against the opposing arm. It still leaves rooms for the arm to be rammed up to 50 steps, but this is still reasonable and better than ramming 150 steps.
+
+With the TMC2209 stepper driver, I can also control the current to limit the start-up torque during the homing procedure to limit the forces achieved in a failure. This would prevent any damage from those steps which would be ramming.
+This driver also can detect missed steps in its cycle through the UART connection, which i have not used and will test after i can ensure that this method works.
+
+for example; the initial fullstep sweep reveals that the HES is triggered between steps 10 and 16 (which would point to the home being at step 13). the uC raises the threshold to a higher mT and also increases the micro-stepping and re-sweeps. That could return steps 12 1/4 and 13 3/4 (confirming that the home should be marked as step 13).
