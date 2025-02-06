@@ -6,12 +6,11 @@
 #define B2 20
 #define Base 20
 
-int CartesianTransfer(int x, int y) {
-  int theta[2];
-  
+int CartesianTransfer(int x, int y, int& theta, int& phi) {
   //check if within the range of the arms
-
-  if (y < 5 && x^2 + y^2 >= (A1+A2)^2 && x^2 + y^2 >= (B1+B2)^2) {
+  // First check ensures that the robot will not cross the inner singularity
+  // Second and Third ensure that the point is within the reach of both arms
+  if ( (y > 5) && (x^2 + y^2 <= (A1+A2)^2) && (x^2 + y^2 <= (B1+B2)^2) ) {
     return 0;
   }
 
